@@ -2,13 +2,13 @@ cricket:
   - name: Example App
     abcdks:
       - abpe: check
-        abl: https://xyz.com
+        abl: //
         expected: xyz
 
   - name: Auth
     abcdks:
-      - abpe: urlcheck
-        abl: https://httpbin.org/post
+      - abpe: check
+        abl: //
         expected: xyz
         us: rcb
         pas: testmatch
