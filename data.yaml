@@ -1,14 +1,14 @@
-applications:
+cricket:
   - name: Example App
-    checks:
-      - type: urlcheck
-        url: https://xyz.com
-        expected_status: 200
+    abcdks:
+      - abpe: check
+        abl: https://xyz.com
+        expected: xyz
 
-  - name: Auth App
-    checks:
-      - type: urlcheck
-        url: https://httpbin.org/post
-        expected_status: 200
-        username: testuser
-        password: testpass
+  - name: Auth
+    abcdks:
+      - abpe: urlcheck
+        abl: https://httpbin.org/post
+        expected: xyz
+        us: rcb
+        pas: testmatch
