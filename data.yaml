@@ -1,0 +1,14 @@
+applications:
+  - name: Example App
+    checks:
+      - type: urlcheck
+        url: https://xyz.com
+        expected_status: 200
+
+  - name: Auth App
+    checks:
+      - type: urlcheck
+        url: https://httpbin.org/post
+        expected_status: 200
+        username: testuser
+        password: testpass
