@@ -1,87 +1,50 @@
-class RowCountComparator:
-    def __init__(self, output, value):
-        self.output = output
-        self.value = value
+import json
+import xml.etree.ElementTree as ET
 
-    def greater_than(self):
-        if self.output > self.value:
-            print(f"Success: Database row count is {self.output}")
-            print(f"It is greater than expected count: {self.value}")
-        else:
-            print(f"Failure: Database row count is {self.output}")
-            print(f"It is not greater than expected count: {self.value}")
+def handle_db_check(config):
+    db_check = DBCheck(config)
+    db_check.connect()
 
-    def less_than(self):
-        if self.output < self.value:
-            print(f"Success: Database row count is {self.output}")
-            print(f"It is less than expected count: {self.value}")
-        else:
-            print(f"Failure: Database row count is {self.output}")
-            print(f"It is not less than expected count: {self.value}")
-
-    def equal_to(self):
-        if self.output == self.value:
-            print(f"Success: Database row count is {self.output}")
-            print(f"It is equal to expected count: {self.value}")
-        else:
-            print(f"Failure: Database row count is {self.output}")
-            print(f"It is not equal to expected count: {self.value}")
-
-    def not_equal_to(self):
-        if self.output != self.value:
-            print(f"Success: Database row count is {self.output}")
-            print(f"It is not equal to expected count: {self.value}")
-        else:
-            print(f"Failure: Database row count is {self.output}")
-            print(f"It is equal to expected count: {self.value}")
-
-    def greater_equal(self):
-        if self.output >= self.value:
-            print(f"Success: Database row count is {self.output}")
-            print(f"It is greater than or equal to expected count: {self.value}")
-        else:
-            print(f"Failure: Database row count is {self.output}")
-            print(f"It is not greater than or equal to expected count: {self.value}")
-
-    def less_equal(self):
-        if self.output <= self.value:
-            print(f"Success: Database row count is {self.output}")
-            print(f"It is less than or equal to expected count: {self.value}")
-        else:
-            print(f"Failure: Database row count is {self.output}")
-            print(f"It is not less than or equal to expected count: {self.value}")
-
-
-
-
-def compare_and_print(self, output, count):
-    if count is None:
-        print(f"Output: {output}")
+    if db_check.cur is None:
+        print(f"Skipping db ({config.get('db_type')}) due to failed connection")
         return
 
-    parts = count.split()
-    if len(parts) != 2:
-        print("Invalid count configuration")
+    generate_report = config.get("generate_report", False)
+
+    queries = config.get("queries", [])
+    if not isinstance(queries, list):
+        print("Invalid queries format. Skipping.")
         return
 
-    operator = parts[0]
-    try:
-        value = int(parts[1])
-    except ValueError:
-        print("Invalid value in count")
-        return
+    results = []
 
-    comparator = RowCountComparator(output, value)
-    operator_map = {
-        ">": comparator.greater_than,
-        "<": comparator.less_than,
-        "==": comparator.equal_to,
-        "!=": comparator.not_equal_to,
-        ">=": comparator.greater_equal,
-        "<=": comparator.less_equal
-    }
+    for query_cfg in queries:
+        query = query_cfg.get("query")
+        count = query_cfg.get("count")
+        if query:
+            output = db_check.run_query(query)
+            result = db_check.compare.compare_and_print(output, count)
+            results.append({
+                "query": query,
+                "count": count,
+                "output": output,
+                "result": result
+            })
 
-    if operator in operator_map:
-        operator_map[operator]()
+    if generate_report:
+        # Generate XML Report
+        root = ET.Element("DBCheckReport")
+        for res in results:
+            item = ET.SubElement(root, "QueryResult")
+            ET.SubElement(item, "query").text = res["query"]
+            ET.SubElement(item, "count").text = str(res["count"])
+            ET.SubElement(item, "output").text = str(res["output"])
+            ET.SubElement(item, "result").text = res["result"]
+        tree = ET.ElementTree(root)
+        tree.write("report.xml")
+        print("XML report generated: report.xml")
     else:
-        print("Invalid operator")
+        # Generate JSON Report
+        with open("report.json", "w") as f:
+            json.dump(results, f, indent=4)
+        print("JSON report generated: report.json")
