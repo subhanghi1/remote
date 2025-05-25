@@ -1,0 +1,87 @@
+class RowCountComparator:
+    def __init__(self, output, value):
+        self.output = output
+        self.value = value
+
+    def greater_than(self):
+        if self.output > self.value:
+            print(f"Success: Database row count is {self.output}")
+            print(f"It is greater than expected count: {self.value}")
+        else:
+            print(f"Failure: Database row count is {self.output}")
+            print(f"It is not greater than expected count: {self.value}")
+
+    def less_than(self):
+        if self.output < self.value:
+            print(f"Success: Database row count is {self.output}")
+            print(f"It is less than expected count: {self.value}")
+        else:
+            print(f"Failure: Database row count is {self.output}")
+            print(f"It is not less than expected count: {self.value}")
+
+    def equal_to(self):
+        if self.output == self.value:
+            print(f"Success: Database row count is {self.output}")
+            print(f"It is equal to expected count: {self.value}")
+        else:
+            print(f"Failure: Database row count is {self.output}")
+            print(f"It is not equal to expected count: {self.value}")
+
+    def not_equal_to(self):
+        if self.output != self.value:
+            print(f"Success: Database row count is {self.output}")
+            print(f"It is not equal to expected count: {self.value}")
+        else:
+            print(f"Failure: Database row count is {self.output}")
+            print(f"It is equal to expected count: {self.value}")
+
+    def greater_equal(self):
+        if self.output >= self.value:
+            print(f"Success: Database row count is {self.output}")
+            print(f"It is greater than or equal to expected count: {self.value}")
+        else:
+            print(f"Failure: Database row count is {self.output}")
+            print(f"It is not greater than or equal to expected count: {self.value}")
+
+    def less_equal(self):
+        if self.output <= self.value:
+            print(f"Success: Database row count is {self.output}")
+            print(f"It is less than or equal to expected count: {self.value}")
+        else:
+            print(f"Failure: Database row count is {self.output}")
+            print(f"It is not less than or equal to expected count: {self.value}")
+
+
+
+
+def compare_and_print(self, output, count):
+    if count is None:
+        print(f"Output: {output}")
+        return
+
+    parts = count.split()
+    if len(parts) != 2:
+        print("Invalid count configuration")
+        return
+
+    operator = parts[0]
+    try:
+        value = int(parts[1])
+    except ValueError:
+        print("Invalid value in count")
+        return
+
+    comparator = RowCountComparator(output, value)
+    operator_map = {
+        ">": comparator.greater_than,
+        "<": comparator.less_than,
+        "==": comparator.equal_to,
+        "!=": comparator.not_equal_to,
+        ">=": comparator.greater_equal,
+        "<=": comparator.less_equal
+    }
+
+    if operator in operator_map:
+        operator_map[operator]()
+    else:
+        print("Invalid operator")
