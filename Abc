@@ -1,0 +1,67 @@
+@Library('jenkins-devops-cicd-library') _
+
+import com.bnpparibas.store.ArtifactoryRestFactoryGen
+import groovy.json.*
+import static groovy.json.JsonParserType.LAX as RELAX
+
+// def mail_subject = 'Daily automation checks report'
+pipeline {
+    agent {
+        label 'bnpp-buildtools'
+    }
+
+    environment {
+        TEST_ROOT_DIRECTORY = "."
+        current_time = java.time.LocalDate.now()
+        // ART_CREDS = credentials("artifactory-credentials")
+        // ARTIFACT_USER = "${ART_CREDS_USR}"
+        // ARTIFACT_PASS = "${ART_CREDS_PSW}"
+        // DEVOPSPLAT_OPSP_CRT = credentials("TV24DEVOPSPLA-OPSP.crt")
+        // DEVOPSPLAT_OPSP_KEY = credentials("TV24DEVOPSPLA-OPSP.key")
+        // DEVOPSPLAT_OPSD_CRT = credentials("TV24DEVOPSPLA-OPSD.crt")
+        // DEVOPSPLAT_OPSD_KEY = credentials("TV24DEVOPSPLA-OPSD.key")
+        // CA_BUNDLE_PEM = credentials("CA_Bundle.pem")
+    }
+
+    stages {
+        stage('Prepare env and Run python script') {
+            steps {
+                sh '''
+                    echo "Installing ping utility (if missing)..."
+                    apt-get update && apt-get install -y iputils-ping || echo "ping not installed"
+
+                    cp "DEVOPSPLAT_OPSP_CRT" ./lookupPlugins/TV24DEVOPSPLA-OPSP.crt
+                    cp "DEVOPSPLAT_OPSP_KEY" ./lookupPlugins/TV24DEVOPSPLA-OPSP.key
+                    cp "DEVOPSPLAT_OPSD_CRT" ./lookupPlugins/TV24DEVOPSPLA-OPSD.crt
+                    cp "DEVOPSPLAT_OPSD_KEY" ./lookupPlugins/TV24DEVOPSPLA-OPSD.key
+                    cp "CA_BUNDLE_PEM" ./lookupPlugins/CA_Bundle.pem
+
+                    cd "$TEST_ROOT_DIRECTORY"
+
+                    pip install --user pipenv
+                    export PATH=$HOME/.local/bin:$PATH
+
+                    export arti_user="$ARTIFACT_USER"
+                    export arti_pass="$ARTIFACT_PASS"
+
+                    pipenv install --skip-lock --python=/usr/bin/python3.7
+                    pipenv sync
+                    pipenv run pip list
+
+                    pipenv run python main.py "$ARTIFACT_USER" "$ARTIFACT_PASS"
+                    echo "Python script complete"
+                '''
+            }
+        }
+
+        stage('Report Mailing') {
+            steps {
+                script {
+                    emailext body: '${FILE, path="html_report.html"}',
+                             subject: "Daily checks report",
+                             to: 'subhanghi.saha@asia.bnpparibas.com'
+                }
+            }
+        }
+    }
+}
