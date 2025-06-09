@@ -1,1 +1,24 @@
+import yaml
+from cerberus import Validator
+
+def load_yaml(file_path):
+    # Load YAML
+    try:
+        with open(file_path, 'r') as f:
+            data = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise ValueError(f"YAML Parsing Error: {e}")
+
+    # If top-level is a list, validate each block
+    if isinstance(data, list):
+        for i, block in enumerate(data):
+            v = Validator(schema)
+            if not v.validate(block):
+                raise ValueError(f"Validation failed at block #{i+1}: {v.errors}")
+    else:
+        v = Validator(schema)
+        if not v.validate(data):
+            raise ValueError(f"Validation failed: {v.errors}")
+
+    return data
 
