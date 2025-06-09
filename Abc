@@ -1,1 +1,53 @@
+schema = {
+    'type': {'type': 'string', 'required': True},
+    'checkname': {'type': 'string', 'required': False},
+    'url': {'type': 'string', 'required': False},
+    'description': {'type': 'string', 'required': True},
+    'status_code': {'type': 'integer', 'required': False},
+    'verify': {'type': 'boolean', 'required': False},
+    'xpath': {'type': 'string', 'required': False},
+    'value': {'type': 'string', 'required': False},
+
+    'db_type': {'type': 'string', 'required': False},
+    'db_host': {'type': 'string', 'required': False},
+    'db_name': {'type': 'string', 'required': False},
+    'credsdata': {
+        'type': 'dict',
+        'required': False,
+        'schema': {
+            'credential': {'type': 'string', 'required': True},
+            'safe': {'type': 'string', 'required': True},
+            'appid': {'type': 'string', 'required': True},
+            'cyberark_ca': {'type': 'string', 'required': True},
+            'cyberark_cred': {'type': 'string', 'required': True},
+            'cyberark_key': {'type': 'string', 'required': True}
+        }
+    },
+    'queries': {
+        'type': 'list',
+        'required': False,
+        'schema': {
+            'type': 'dict',
+            'schema': {
+                'query': {'type': 'string', 'required': True},
+                'condition': {'type': 'string', 'required': False}
+            }
+        }
+    },
+
+    'commands': {
+        'type': 'list',
+        'required': False,
+        'schema': {
+            'type': 'dict',
+            'schema': {
+                'command': {'type': 'string', 'required': True},
+                'expected_output': {'type': 'string', 'required': True}
+            }
+        }
+    },
+
+    'hostname': {'type': 'string', 'required': False},
+    'executionPlatform': {'type': 'string', 'required': False}
+}
 
