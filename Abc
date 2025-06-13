@@ -1,1 +1,16 @@
+from schema import Application
+from pydantic import ValidationError
+
+def validate_config(config_path):
+    try:
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+            if 'application' in config_data:
+                config_data = config_data['application']
+                Application(**config_data)  # Validation happens here
+                print("Config is valid")
+    except ValidationError as e:
+        print(f"Config is invalid: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
