@@ -1,16 +1,60 @@
-from schema import Application
-from pydantic import ValidationError
+import subprocess
+import yaml
 
-def validate_config(config_path):
+def fetch_credentials(config, field):
+    if 'credentials' in config and field in config['credentials']:
+        return config['credentials'][field]
+    else:
+        print(f"[Error] Credential field '{field}' not found in config.")
+        return None
+
+def upload_report_to_artifactory(config, filename):
     try:
-        with open(config_path, 'r') as f:
-            config_data = yaml.safe_load(f)
-            if 'application' in config_data:
-                config_data = config_data['application']
-                Application(**config_data)  # Validation happens here
-                print("Config is valid")
-    except ValidationError as e:
-        print(f"Config is invalid: {e}")
+        # Fetch all necessary credentials
+        artif_user = fetch_credentials(config, 'credential1')
+        artif_pass = fetch_credentials(config, 'appid')
+        domain_url = config.get('artifactory', {}).get('domainurl', '')
+
+        if not all([artif_user, artif_pass, domain_url]):
+            print("[Error] Missing Artifactory credentials or domain URL.")
+            return
+
+        # Prepare upload command
+        url = f"{domain_url}{filename}"
+        print(f"Uploading to URL: {url}")
+
+        curl_command = [
+            "curl",
+            "-u", f"{artif_user}:{artif_pass}",
+            "-T", filename,
+            url
+        ]
+
+        process = subprocess.Popen(curl_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+        if process.returncode == 0:
+            print(f"File '{filename}' uploaded successfully")
+        else:
+            print(f"Failed to upload file '{filename}'")
+            print(stderr.decode())
+
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"[Exception] Error uploading file: {e}")
+
+# Load YAML file and call the function
+if __name__ == "__main__":
+    try:
+        with open("config.yaml", "r") as file:
+            config = yaml.safe_load(file)
+
+        # Debug print to verify YAML loading
+        print("Loaded config:", config)
+
+        # Call function to upload report (assuming filename is generated somewhere)
+        upload_report_to_artifactory(config, "sample_report.json")
+
+    except Exception as e:
+        print(f"[Exception] Error reading YAML config: {e}")
+
 
